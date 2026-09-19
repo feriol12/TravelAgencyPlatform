@@ -1,0 +1,13 @@
+---
+description: Travel Agency Platform project rules
+alwaysApply: true
+---
+
+Read and follow:
+- `AGENTS.md`
+- `docs/ai/PROJECT_CONTEXT.md`
+- `docs/ai/CURRENT_STATE.md`
+- `docs/ai/SECURITY_RULES.md`
+
+Use the active Trello/card specification as the operational task contract.
+Do not invent business rules or architecture changes silently.

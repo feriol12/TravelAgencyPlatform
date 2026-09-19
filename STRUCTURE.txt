@@ -1,0 +1,36 @@
+.cursor/
+  rules/
+    project.mdc
+.editorconfig
+.gitignore
+AGENTS.md
+CLAUDE.md
+README.md
+backend/
+  .gitkeep
+docs/
+  README.md
+  ai/
+    CURRENT_STATE.md
+    HANDOFF.md
+    PROJECT_CONTEXT.md
+    REVIEW_PROTOCOL.md
+    SECURITY_RULES.md
+  architecture/
+    ARCHITECTURE_TECHNIQUE_v0.1.md
+    DICTIONNAIRE_DONNEES_v0.1.md
+    MODELE_DONNEES_CONCEPTUEL_v0.1.md
+    MODELE_DONNEES_LOGIQUE_v0.1.md
+    decisions/
+      .gitkeep
+  functional/
+    README.md
+  product/
+    Cahier_des_Charges_Fonctionnel_V1_Plateforme_Agence_Voyage.docx
+    README.md
+  project/
+    GOUVERNANCE_AGENTS_IA_v0.1.md
+  security/
+    README.md
+frontend/
+  .gitkeep
