@@ -11,8 +11,10 @@ Plateforme web mono-agence de gestion et de suivi des procédures de voyage.
 
 ## État actuel
 
-Le projet est en phase de baseline repository. Les spécifications fonctionnelles,
-l'architecture, le modèle de données et la gouvernance IA ont été validés.
+La fondation backend Laravel/MySQL est implémentée sur `feature/backend-foundation`,
+en attente de revue indépendante et de validation humaine. Le frontend et les
+modules métier ne sont pas encore initialisés. Voir [le démarrage backend](backend/README.md)
+et [l'état vérifié du projet](docs/ai/CURRENT_STATE.md).
 
 Avant toute implémentation importante, lire :
 
