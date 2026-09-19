@@ -11,9 +11,10 @@ Plateforme web mono-agence de gestion et de suivi des procédures de voyage.
 
 ## État actuel
 
-La fondation backend Laravel/MySQL est implémentée sur `feature/backend-foundation`,
-en attente de revue indépendante et de validation humaine. Le frontend et les
-modules métier ne sont pas encore initialisés. Voir [le démarrage backend](backend/README.md)
+La fondation backend Laravel/MySQL est validée et mergée dans `develop` (`5e8570b`).
+La fondation frontend est implémentée sur `feature/frontend-foundation`, en attente
+de revue et de validation. Aucun module métier n'est implémenté.
+Voir [le démarrage backend](backend/README.md), [le démarrage frontend](frontend/README.md)
 et [l'état vérifié du projet](docs/ai/CURRENT_STATE.md).
 
 Avant toute implémentation importante, lire :
