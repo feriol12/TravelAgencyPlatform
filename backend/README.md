@@ -31,15 +31,32 @@ composer audit
 php vendor/bin/pint --test
 ```
 
-`phpunit.xml` fixe l'environnement `testing` et la connexion MySQL locale
-`127.0.0.1:3306/travel_agency_test`, y compris si le terminal hérite de variables
-de développement. Les identifiants sont lus depuis `.env`, sans copie de secret.
+`phpunit.xml` impose l'environnement `testing` et le driver MySQL, neutralise
+`DB_URL` et le socket, et propose par défaut `127.0.0.1:3306/travel_agency_test`.
+Les variables de processus `DB_HOST`, `DB_PORT` et `DB_DATABASE` permettent de
+surcharger ces valeurs pour un worktree ou la CI, sans modifier le code source.
+Les identifiants sont lus depuis `.env`, sans copie de secret.
 Aucun `.env.testing` n'est nécessaire pour cette fondation. C'est le mécanisme
 [PHPUnit documenté par Laravel 13](https://github.com/laravel/docs/blob/13.x/testing.md).
 
-Le TestCase refuse une configuration en cache ou une autre cible avant que les
+Exemple dans un terminal PowerShell dédié aux tests, avec une base déjà provisionnée :
+
+```powershell
+$env:DB_HOST = '127.0.0.1'
+$env:DB_PORT = '3307'
+$env:DB_DATABASE = 'travel_agency_test_worktree2'
+php artisan test
+```
+
+Fermer ce terminal après les tests pour ne pas réutiliser ces variables en développement.
+La convention autorisée est `travel_agency_test` ou `travel_agency_test_<suffix>`
+(suffixe non vide composé de lettres ASCII, chiffres ou underscores).
+Une valeur héritée telle que `travel_agency_dev` est refusée, pas remplacée.
+
+Le TestCase refuse une configuration en cache ou une base hors convention avant que les
 traits de test puissent lancer des migrations. Le test d'isolation interroge
-`SELECT DATABASE()` sur la connexion réelle. Les tests actuels ne modifient pas
+`SELECT DATABASE()` sur la connexion réelle et vérifie sa correspondance avec la
+configuration, la convention de test et l'exclusion de la base dev. Les tests actuels ne modifient pas
 les données et ne nécessitent aucune table dans la base de test. Les futures
 migrations de tests devront rester strictement limitées à cette base.
 

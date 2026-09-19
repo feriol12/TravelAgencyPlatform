@@ -21,11 +21,9 @@ abstract class TestCase extends BaseTestCase
         if (! $app->environment('testing')
             || $app->configurationIsCached()
             || $connection->getDriverName() !== 'mysql'
-            || $connection->getConfig('host') !== '127.0.0.1'
-            || (string) $connection->getConfig('port') !== '3306'
             || $connection->getConfig('unix_socket') !== ''
-            || $connection->getDatabaseName() !== 'travel_agency_test') {
-            throw new RuntimeException('Tests require the local MySQL travel_agency_test database.');
+            || preg_match('/\Atravel_agency_test(?:_[A-Za-z0-9_]+)?\z/', (string) $connection->getDatabaseName()) !== 1) {
+            throw new RuntimeException('Tests require a MySQL database named travel_agency_test or travel_agency_test_<suffix>.');
         }
 
         return $app;

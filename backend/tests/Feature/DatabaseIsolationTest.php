@@ -11,6 +11,10 @@ class DatabaseIsolationTest extends TestCase
     {
         $this->assertTrue($this->app->environment('testing'));
         $this->assertSame('mysql', DB::connection()->getDriverName());
-        $this->assertSame('travel_agency_test', DB::selectOne('SELECT DATABASE() AS name')->name);
+        $database = DB::selectOne('SELECT DATABASE() AS name')->name;
+
+        $this->assertSame(DB::connection()->getDatabaseName(), $database);
+        $this->assertMatchesRegularExpression('/\Atravel_agency_test(?:_[A-Za-z0-9_]+)?\z/', $database);
+        $this->assertNotSame('travel_agency_dev', $database);
     }
 }
