@@ -30,9 +30,10 @@ Les routes `/`, `/client` et `/admin` chargent leurs layouts et vues minimales
 
 `src/services/auth.js` fournit le client minimal Sanctum SPA : `fetchCsrfCookie`,
 `login`, `logout`, `fetchCurrentUser` (normalise 401/419 en `null`, sans retry
-automatique). Aucun store métier ni page de login finale ; `/dev/auth-smoke`
-est une route temporaire de vérification manuelle du flux, à retirer quand une
-vraie page de login existera.
+automatique). Aucun store métier ni page de login finale. Ce service n'est
+consommé par aucune route pour l'instant ; la vérification du flux se fait par
+tests d'intégration HTTP (voir `backend/README.md`) en attendant une vraie
+page de login.
 
 Le routeur utilise l'historique HTML5 : un futur hébergement devra renvoyer
 `index.html` pour les routes de la SPA. Vite gère ce fallback en développement.

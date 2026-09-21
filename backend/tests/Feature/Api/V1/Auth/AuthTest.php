@@ -72,6 +72,23 @@ class AuthTest extends TestCase
         $response->assertJsonValidationErrors(['email', 'password']);
     }
 
+    public function test_login_without_a_stateful_session_context_fails_safely(): void
+    {
+        $user = User::factory()->create(['password' => bcrypt('correct-password')]);
+
+        // No Referer/Origin header: Sanctum's EnsureFrontendRequestsAreStateful
+        // will not recognise this as a frontend request, so no session middleware
+        // runs for it. This must not crash and must not authenticate the user.
+        $response = $this->postJson('/api/v1/auth/login', [
+            'email' => $user->email,
+            'password' => 'correct-password',
+        ]);
+
+        $response->assertStatus(419);
+        $response->assertJsonMissingPath('data');
+        $this->assertGuest('web');
+    }
+
     public function test_me_returns_the_authenticated_user(): void
     {
         $user = User::factory()->create();

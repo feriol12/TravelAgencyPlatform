@@ -18,6 +18,16 @@ class AuthController extends Controller
             'password' => ['required', 'string'],
         ]);
 
+        // Sanctum only attaches session middleware to requests it recognizes as
+        // coming from the configured SPA frontend (matching Origin/Referer against
+        // sanctum.stateful). Without a session, credentials cannot be safely turned
+        // into an authenticated state, so reject before ever attempting auth.
+        if (! $request->hasSession()) {
+            return response()->json([
+                'message' => 'This request is not compatible with the SPA session authentication flow.',
+            ], 419);
+        }
+
         if (! Auth::guard('web')->attempt($credentials)) {
             throw ValidationException::withMessages([
                 'email' => ['These credentials do not match our records.'],
