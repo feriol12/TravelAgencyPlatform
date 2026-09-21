@@ -1,7 +1,7 @@
 # Backend local
 
 Fondation Laravel 13.32.0 / PHP 8.3+ / MySQL (8.4.3 vérifié localement).
-Aucune API métier ni configuration Sanctum n'est encore implémentée.
+Sanctum SPA (cookie/session) est configuré ; aucune API métier n'est encore implémentée.
 
 Depuis `backend/` :
 
@@ -60,7 +60,26 @@ configuration, la convention de test et l'exclusion de la base dev. Les tests ac
 les données et ne nécessitent aucune table dans la base de test. Les futures
 migrations de tests devront rester strictement limitées à cette base.
 
-Les migrations dev actuelles sont uniquement les trois migrations du scaffold.
+Les migrations dev actuelles sont uniquement les trois migrations du scaffold
+plus la migration `personal_access_tokens` fournie par Sanctum (table publiée,
+non utilisée par le flux SPA cookie/session actuel).
 Ne pas lancer `migrate:fresh` ou `db:wipe` sur la base de développement.
 Le fichier SQLite initial a été retiré après vérification de l'absence de données
 applicatives ; il n'est plus créé par le script Composer du scaffold.
+
+## Authentification Sanctum SPA
+
+Endpoints disponibles sous `/api/v1/auth` : `POST login`, `POST logout` (protégé),
+`GET me` (protégé). Le handshake CSRF se fait via `GET /sanctum/csrf-cookie`
+avant tout appel state-changing.
+
+Variables `.env` requises pour le développement local (déjà dans `.env.example`) :
+
+```
+SANCTUM_STATEFUL_DOMAINS=localhost:5173,127.0.0.1:5173
+CORS_ALLOWED_ORIGINS=http://localhost:5173,http://127.0.0.1:5173
+```
+
+Ces deux listes doivent rester cohérentes avec l'origine réelle du serveur Vite
+(`http://localhost:5173` ou `http://127.0.0.1:5173`) : un mismatch entre les deux
+casse silencieusement le CORS pour l'origine non couverte.

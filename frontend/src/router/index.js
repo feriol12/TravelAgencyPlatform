@@ -36,5 +36,12 @@ export default createRouter({
         },
       ],
     },
+    {
+      // Temporary smoke-test route for the Sanctum SPA authentication
+      // foundation (card 01.0). Remove once a real login page exists.
+      path: '/dev/auth-smoke',
+      name: 'dev-auth-smoke',
+      component: () => import('../views/dev/AuthSmokeView.vue'),
+    },
   ],
 })

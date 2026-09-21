@@ -27,7 +27,12 @@ Les variables `VITE_*` sont publiques dans le navigateur : aucun secret.
 
 Les routes `/`, `/client` et `/admin` chargent leurs layouts et vues minimales
 à la demande. Elles ne sont pas sécurisées. Pinia est initialisé sans store métier.
-Aucune requête API ou CSRF automatique. No authentication/business modules implemented yet.
+
+`src/services/auth.js` fournit le client minimal Sanctum SPA : `fetchCsrfCookie`,
+`login`, `logout`, `fetchCurrentUser` (normalise 401/419 en `null`, sans retry
+automatique). Aucun store métier ni page de login finale ; `/dev/auth-smoke`
+est une route temporaire de vérification manuelle du flux, à retirer quand une
+vraie page de login existera.
 
 Le routeur utilise l'historique HTML5 : un futur hébergement devra renvoyer
 `index.html` pour les routes de la SPA. Vite gère ce fallback en développement.
