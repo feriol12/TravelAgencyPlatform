@@ -7,6 +7,7 @@ use App\Models\ReferenceCounter as ReferenceCounterModel;
 use App\Services\ReferenceCounter;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
 use Symfony\Component\Process\Process;
 use Tests\TestCase;
@@ -18,6 +19,33 @@ class ReferenceCounterTest extends TestCase
         parent::setUp();
 
         ReferenceCounterModel::query()->delete();
+    }
+
+    /**
+     * Construit l'environnement des workers à partir de la configuration de
+     * connexion réellement résolue par le processus PHPUnit parent.
+     *
+     * Aucun nom de base ne doit être codé en dur : phpunit.xml, une variable
+     * d'environnement ou un .env local peuvent définir la base de test effective.
+     *
+     * @return array<string, string>
+     */
+    private function workerEnvironment(): array
+    {
+        $connection = DB::connection();
+        $config = $connection->getConfig();
+
+        return [
+            'APP_ENV' => 'testing',
+            'DB_CONNECTION' => (string) ($config['driver'] ?? ''),
+            'DB_HOST' => (string) ($config['host'] ?? ''),
+            'DB_PORT' => (string) ($config['port'] ?? ''),
+            'DB_SOCKET' => (string) ($config['unix_socket'] ?? ''),
+            'DB_DATABASE' => (string) $connection->getDatabaseName(),
+            'DB_USERNAME' => (string) ($config['username'] ?? ''),
+            'DB_PASSWORD' => (string) ($config['password'] ?? ''),
+            'DB_URL' => (string) ($config['url'] ?? ''),
+        ];
     }
 
     /**
@@ -164,10 +192,8 @@ class ReferenceCounterTest extends TestCase
         $testYear = 2050;
 
         $workerScript = __DIR__.'/concurrency_worker.php';
-        $env = [
-            'DB_DATABASE' => 'travel_agency_test_dimas',
-            'APP_ENV' => 'testing',
-        ];
+        $parentDatabase = DB::connection()->getDatabaseName();
+        $env = $this->workerEnvironment();
 
         /** @var Process[] $processes */
         $processes = [];
@@ -196,10 +222,20 @@ class ReferenceCounterTest extends TestCase
             $lines = array_filter(explode("\n", str_replace("\r", '', $output)));
             $lastLine = end($lines);
             try {
-                $refs = json_decode((string) $lastLine, true, 512, JSON_THROW_ON_ERROR);
+                $payload = json_decode((string) $lastLine, true, 512, JSON_THROW_ON_ERROR);
             } catch (\JsonException $exception) {
                 $this->fail('Child process returned invalid JSON: '.$process->getOutput());
             }
+            $this->assertIsArray($payload);
+
+            // 0. Le worker doit utiliser exactement la même base que le processus PHPUnit parent.
+            $this->assertSame(
+                $parentDatabase,
+                $payload['database'] ?? null,
+                'Worker did not use the database configured for the PHPUnit parent process.'
+            );
+
+            $refs = $payload['references'] ?? null;
             $this->assertIsArray($refs);
             $this->assertCount($callsPerProcess, $refs);
 
@@ -265,5 +301,43 @@ class ReferenceCounterTest extends TestCase
                 $this->assertStringContainsString('Allowed types are: REQ, PRJ, REC', $e->getMessage());
             }
         }
+    }
+
+    /**
+     * J. Années hors plage : rejetées proprement, aucune référence à cinq chiffres.
+     */
+    public function test_out_of_range_years_are_rejected(): void
+    {
+        $invalidYears = [-2026, -1, 0, 1, 999, 10000, 20000, PHP_INT_MAX];
+
+        foreach ($invalidYears as $invalidYear) {
+            try {
+                ReferenceCounter::next('REQ', $invalidYear);
+                $this->fail("Expected InvalidArgumentException for invalid year '{$invalidYear}' was not thrown.");
+            } catch (InvalidArgumentException $e) {
+                $this->assertStringContainsString('Invalid reference year', $e->getMessage());
+                $this->assertStringContainsString('1000 and 9999', $e->getMessage());
+            }
+        }
+
+        // Une année invalide ne doit écrire aucun compteur.
+        $this->assertSame(0, ReferenceCounterModel::query()->count());
+    }
+
+    /**
+     * K. Bornes admises : 1000 et 9999 restent des années à quatre chiffres.
+     */
+    public function test_boundary_years_produce_four_digit_references(): void
+    {
+        $lowest = ReferenceCounter::next('REQ', 1000);
+        $highest = ReferenceCounter::next(ReferenceType::PRJ, 9999);
+
+        $this->assertSame('REQ-1000-000001', $lowest);
+        $this->assertSame('PRJ-9999-000001', $highest);
+
+        $pattern = '/^(REQ|PRJ|REC)-\d{4}-\d{6}$/';
+
+        $this->assertMatchesRegularExpression($pattern, $lowest);
+        $this->assertMatchesRegularExpression($pattern, $highest);
     }
 }

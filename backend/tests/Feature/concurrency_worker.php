@@ -2,6 +2,7 @@
 
 use App\Services\ReferenceCounter;
 use Illuminate\Contracts\Console\Kernel;
+use Illuminate\Support\Facades\DB;
 
 require __DIR__.'/../../vendor/autoload.php';
 
@@ -17,5 +18,10 @@ for ($i = 0; $i < $count; $i++) {
     $refs[] = ReferenceCounter::next($type, $year);
 }
 
+// La base réellement utilisée est renvoyée au test parent pour qu'il puisse
+// vérifier que tous les workers partagent la même base isolée que PHPUnit.
 echo PHP_EOL;
-echo json_encode($refs, JSON_THROW_ON_ERROR);
+echo json_encode([
+    'database' => DB::connection()->getDatabaseName(),
+    'references' => $refs,
+], JSON_THROW_ON_ERROR);
